@@ -1,1 +1,39 @@
-indev
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+  <div class="min-h-screen bg-black text-white px-4 py-8 md:py-16">
+    <div class="max-w-2xl mx-auto space-y-6">
+      
+      <!-- Header with Sign Up -->
+      <div class="flex justify-end">
+        <button class="text-white/60 hover:text-white transition-colors">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Subs Container -->
+      <div class="border border-yellow-200/30 min-h-[60vh] p-4 md:p-6">
+        <a 
+          href="https://free.speech.capital" 
+          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
+        >
+          free.speech.capital
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
