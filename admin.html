@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schema Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-200 font-mono min-h-screen p-8">
+
+<div class="max-w-4xl mx-auto space-y-6">
+  <h1 class="text-xl font-bold">D1 Schema Management</h1>
+  
+  <div class="flex gap-4">
+    <button id="getSchema" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Get Schema</button>
+    <button id="createSchema" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">Create/Verify Schema</button>
+  </div>
+  
+  <div>
+    <h2 class="text-lg mb-2">Output:</h2>
+    <pre id="output" class="bg-black p-4 rounded-lg text-sm whitespace-pre-wrap break-all min-h-[200px]"></pre>
+  </div>
+</div>
+
+<script>
+// This frontend assumes a backend endpoint at `/api/schema` that accepts a POST
+// request with a JSON body like `{"action": "get"}` or `{"action": "create"}`.
+
+const out = document.getElementById('output');
+const btns = {
+  get: document.getElementById('getSchema'),
+  create: document.getElementById('createSchema')
+};
+
+const exec = async (action) => {
+  out.textContent = `Executing "${action}"...`;
+  try {
+    const res = await fetch('/api/schema', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    out.textContent = JSON.stringify(data, null, 2);
+  } catch (e) {
+    out.textContent = `Error: ${e.message}`;
+  }
+};
+
+btns.get.addEventListener('click', () => exec('get'));
+btns.create.addEventListener('click', () => exec('create'));
+</script>
+</body>
+</html>
