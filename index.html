@@ -9,34 +9,39 @@
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
-  <div class="relative min-h-screen bg-black text-white px-4 py-8 md:py-16">
-    <a href="/signup" class="absolute top-4 right-4 md:top-8 md:right-8 text-sm text-yellow-200/80 hover:text-yellow-200 border border-yellow-200/30 hover:border-yellow-200/50 px-3 py-1 rounded-md transition-all">
-      Sign Up
-    </a>
+  <div class="min-h-screen bg-black text-white px-4 py-8 md:py-16">
     <div class="max-w-2xl mx-auto space-y-6">
       
       <!-- Subs Container -->
-      <div class="border border-yellow-200/30 min-h-[60vh] p-4 md:p-6 space-y-2">
-        <a 
-          href="https://free.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          free.speech.capital
-        </a>
-        <br>
-        <a 
-          href="https://artificial.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          artificial.speech.capital
-        </a>
-        <br>
-        <a 
-          href="https://dev.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          dev.speech.capital
-        </a>
+      <div class="border border-yellow-200/30 min-h-[60vh] p-4 md:p-6">
+        <div class="flex justify-between">
+          <div class="flex flex-col">
+            <a 
+              href="https://free.speech.capital" 
+              class="text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
+            >
+              free.speech.capital
+            </a>
+            <a 
+              href="https://artificial.speech.capital" 
+              class="text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
+            >
+              artificial.speech.capital
+            </a>
+            <a 
+              href="https://dev.speech.capital" 
+              class="text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
+            >
+              dev.speech.capital
+            </a>
+          </div>
+          <a
+            href="/signup"
+            class="text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
+          >
+            Sign Up
+          </a>
+        </div>
       </div>
 
     </div>
