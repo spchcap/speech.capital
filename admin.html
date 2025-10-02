@@ -22,6 +22,23 @@
     <button id="deleteSchema" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Delete Schema</button>
   </div>
   
+  <div class="space-y-4 pt-4 border-t border-gray-700">
+    <h2 class="text-lg font-bold">User Role Management</h2>
+    <div class="flex items-end gap-4">
+      <div class="flex-grow">
+        <label for="username" class="block text-sm font-medium">Username:</label>
+        <input id="username" type="text" class="bg-gray-800 border border-gray-600 rounded w-full px-3 py-2">
+      </div>
+      <div>
+        <label for="role" class="block text-sm font-medium">Role:</label>
+        <select id="role" class="bg-gray-800 border border-gray-600 rounded px-3 py-2">
+          <option>user</option><option>mod</option><option>admin</option><option>owner</option>
+        </select>
+      </div>
+      <button id="setRole" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded">Set Role</button>
+    </div>
+  </div>
+
   <div>
     <h2 class="text-lg mb-2">Output:</h2>
     <pre id="output" class="bg-black p-4 rounded-lg text-sm whitespace-pre-wrap break-all min-h-[200px]"></pre>
@@ -29,21 +46,16 @@
 </div>
 
 <script>
-const out = document.getElementById('output');
-const pass = document.getElementById('adminPass');
-const btns = {
-  get: document.getElementById('getSchema'),
-  create: document.getElementById('createSchema'),
-  delete: document.getElementById('deleteSchema'),
-};
+const el = id => document.getElementById(id);
+const out = el('output'), pass = el('adminPass'), user = el('username'), role = el('role');
 
-const exec = async (action) => {
+const exec = async (action, payload = {}) => {
   out.textContent = `Executing "${action}"...`;
   try {
     const res = await fetch('/api/schema', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, password: pass.value })
+      body: JSON.stringify({ action, password: pass.value, ...payload })
     });
     const data = await res.json();
     out.textContent = JSON.stringify(data, null, 2);
@@ -53,9 +65,10 @@ const exec = async (action) => {
   }
 };
 
-btns.get.addEventListener('click', () => exec('get'));
-btns.create.addEventListener('click', () => exec('create'));
-btns.delete.addEventListener('click', () => {
+el('getSchema').addEventListener('click', () => exec('get'));
+el('createSchema').addEventListener('click', () => exec('create'));
+el('setRole').addEventListener('click', () => user.value && exec('set_role', { username: user.value, role: role.value }));
+el('deleteSchema').addEventListener('click', () => {
   if (confirm('DELETE ALL TABLES? This is irreversible.')) exec('delete');
 });
 </script>
