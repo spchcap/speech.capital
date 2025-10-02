@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - speech.capital</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/scrypt-js@3.0.1/scrypt.min.js"></script>
+</head>
+<body class="bg-black text-white min-h-screen flex items-center justify-center font-mono">
+  <div class="w-full max-w-xs" x-data="f()">
+    <h1 class="text-xl text-yellow-200 mb-4">Create Account</h1>
+    <form @submit.prevent="s" class="space-y-4">
+      <input x-model="u" type="text" placeholder="username" required class="bg-gray-900 border-yellow-200/30 rounded w-full p-2">
+      <input x-model="m" type="email" placeholder="email" required class="bg-gray-900 border-yellow-200/30 rounded w-full p-2">
+      <input x-model="p" type="password" placeholder="password" required class="bg-gray-900 border-yellow-200/30 rounded w-full p-2">
+      <button type="submit" :disabled="l" class="bg-yellow-200/80 hover:bg-yellow-200 text-black w-full p-2 rounded" x-text="l?'...':'Sign Up'"></button>
+    </form>
+    <p x-show="e" x-text="e" class="text-red-400 text-xs mt-2"></p>
+    <p class="text-xs mt-4">Have an account? <a href="/login" class="text-yellow-200/80 hover:text-yellow-200">Log in</a>.</p>
+  </div>
+<script>
+f=()=>({u:'',m:'',p:'',e:null,l:false,async s(){this.l=!0;this.e=null;try{const salt=crypto.getRandomValues(new Uint8Array(16)),N=16384,r=8,p=1,pw=(new TextEncoder()).encode(this.p);const h=await scrypt.scrypt(pw,salt,N,r,p,32),b64=a=>btoa(String.fromCharCode(...a));const h_str=`scrypt$${N}$${r}$${p}$${b64(salt)}$${b64(h)}`;const r1=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:this.u,email:this.m,pass_hash:h_str})});if(!r1.ok){const d=await r1.json();throw new Error(d.error?.message||'Signup failed')}const r2=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:this.u,pass_hash:h_str})});if(!r2.ok)throw new Error('Login failed');window.location.href='/'}catch(e){this.e=e.message}finally{this.l=!1}}})
+</script>
+</body>
+</html>
