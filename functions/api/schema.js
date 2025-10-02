@@ -67,6 +67,7 @@ export async function onRequestPost({ request, env }) {
 
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });
   } catch (e) {
-    return Response.json({ success: false, error: e.message }, { status: 500 });
+    const { message, cause } = e;
+    return Response.json({ success: false, error: { message, cause } }, { status: 500 });
   }
 }
