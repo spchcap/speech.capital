@@ -46,10 +46,10 @@ const schemaV1 = [
     FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(post_id) REFERENCES posts(id),
     FOREIGN KEY(comment_id) REFERENCES comments(id),
-    CHECK ((post_id IS NOT NULL AND comment_id IS NULL) OR (post_id IS NULL AND comment_id IS NOT NULL)),
-    UNIQUE(user_id, post_id),
-    UNIQUE(user_id, comment_id)
-  );`
+    CHECK ((post_id IS NOT NULL AND comment_id IS NULL) OR (post_id IS NULL AND comment_id IS NOT NULL))
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_post_vote ON votes(user_id, post_id) WHERE post_id IS NOT NULL;`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_comment_vote ON votes(user_id, comment_id) WHERE comment_id IS NOT NULL;`
 ];
 
 export async function onRequestPost({ request, env }) {
@@ -64,12 +64,13 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (action === 'create') {
-      const results = await db.exec(schemaV1.join('\n'));
+      const results = await db.batch(schemaV1.map(q => db.prepare(q)));
       return Response.json({ success: true, results });
     }
 
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });
   } catch (e) {
-    return Response.json({ success: false, error: e.message }, { status: 500 });
+    const { message, cause } = e;
+    return Response.json({ success: false, error: { message, cause } }, { status: 500 });
   }
 }
