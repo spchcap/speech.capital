@@ -1,4 +1,8 @@
-const json = (d, o) => new Response(JSON.stringify(d), { ...o, headers: { 'Content-Type': 'application/json' } });
+const json = (d, o = {}) => {
+  const h = new Headers(o.headers);
+  h.set('Content-Type', 'application/json');
+  return new Response(JSON.stringify(d), { ...o, headers: h });
+};
 
 export async function onRequestGet({ request, env }) {
   try {
