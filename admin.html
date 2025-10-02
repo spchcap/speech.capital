@@ -10,10 +10,16 @@
 
 <div class="max-w-4xl mx-auto space-y-6">
   <h1 class="text-xl font-bold">D1 Schema Management</h1>
+
+  <div class="space-y-2">
+    <label for="adminPass" class="block text-sm font-medium">Admin Password:</label>
+    <input id="adminPass" type="password" class="bg-gray-800 border border-gray-600 rounded w-full px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+  </div>
   
   <div class="flex gap-4">
     <button id="getSchema" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Get Schema</button>
     <button id="createSchema" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">Create/Verify Schema</button>
+    <button id="deleteSchema" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Delete Schema</button>
   </div>
   
   <div>
@@ -23,13 +29,12 @@
 </div>
 
 <script>
-// This frontend assumes a backend endpoint at `/api/schema` that accepts a POST
-// request with a JSON body like `{"action": "get"}` or `{"action": "create"}`.
-
 const out = document.getElementById('output');
+const pass = document.getElementById('adminPass');
 const btns = {
   get: document.getElementById('getSchema'),
-  create: document.getElementById('createSchema')
+  create: document.getElementById('createSchema'),
+  delete: document.getElementById('deleteSchema'),
 };
 
 const exec = async (action) => {
@@ -38,11 +43,11 @@ const exec = async (action) => {
     const res = await fetch('/api/schema', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action })
+      body: JSON.stringify({ action, password: pass.value })
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const data = await res.json();
     out.textContent = JSON.stringify(data, null, 2);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${data.error?.message || data.error}`);
   } catch (e) {
     out.textContent = `Error: ${e.message}`;
   }
@@ -50,6 +55,9 @@ const exec = async (action) => {
 
 btns.get.addEventListener('click', () => exec('get'));
 btns.create.addEventListener('click', () => exec('create'));
+btns.delete.addEventListener('click', () => {
+  if (confirm('DELETE ALL TABLES? This is irreversible.')) exec('delete');
+});
 </script>
 </body>
 </html>
