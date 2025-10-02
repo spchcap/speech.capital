@@ -1,6 +1,11 @@
-const json = (d, o = {}) => {
+const json = (d, o = {}, req) => {
   const h = new Headers(o.headers);
   h.set('Content-Type', 'application/json');
+  const origin = req?.headers.get('Origin');
+  if (origin?.endsWith('.speech.capital')) {
+    h.set('Access-Control-Allow-Origin', origin);
+    h.set('Access-Control-Allow-Credentials', 'true');
+  }
   return new Response(JSON.stringify(d), { ...o, headers: h });
 };
 const cookie = c => (c.match(/auth_user=([^;]+)/)?.[1] || null);
@@ -11,13 +16,13 @@ const clear = ()=>{const o=`Domain=.speech.capital; Path=/; Expires=Thu, 01 Jan 
 export async function onRequest({ request, env }) {
   const c = request.headers.get('Cookie') || '';
   const u = cookie(c), h = hash(c);
-  if (!u || !h) return json({ user: null });
+  if (!u || !h) return json({ user: null }, {}, request);
 
   try {
     const user = await env.D1_SPCHCAP.prepare('SELECT id, username, role, pass_hash FROM users WHERE username = ?').bind(u).first();
-    if (user && tsEq(user.pass_hash, h)) return json({ user: { id: user.id, username: user.username, role: user.role } });
-    return json({ user: null }, { headers: clear() });
+    if (user && tsEq(user.pass_hash, h)) return json({ user: { id: user.id, username: user.username, role: user.role } }, {}, request);
+    return json({ user: null }, { headers: clear() }, request);
   } catch (e) {
-    return json({ error: { message: e.message } }, { status: 500 });
+    return json({ error: { message: e.message } }, { status: 500 }, request);
   }
 }
