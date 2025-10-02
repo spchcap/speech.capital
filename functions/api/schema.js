@@ -61,8 +61,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (action === 'create') {
-      const stmts = schemaV1.map(sql => db.prepare(sql));
-      const results = await db.batch(stmts);
+      const results = await db.exec(schemaV1.join(''));
       return Response.json({ success: true, results });
     }
 
