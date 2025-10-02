@@ -17,7 +17,10 @@
           <i data-lucide="user-plus" class="w-4 h-4"></i>
         </a>
         <div x-show="user" class="flex items-center gap-2 text-xs" style="display:none">
-          <span class="text-gray-300">as <strong x-text="user?.username" class="text-yellow-200/80"></strong></span>
+          <span class="text-gray-300">as 
+            <strong x-text="user?.username" class="text-yellow-200/80"></strong>
+            (<span x-text="user?.role"></span>)
+          </span>
           <a href="/api/logout" class="text-yellow-200/80 hover:text-yellow-200">
             <i data-lucide="log-out" class="w-4 h-4"></i>
           </a>
