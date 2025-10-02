@@ -35,9 +35,7 @@ export async function onRequestGet({request,env}){
 
 export async function onRequestPost({request,env}){
   try{
-    // Temporarily log to check if the key is loaded. REMOVE THIS LATER.
-    console.log(`GOOGLE_KEY length: ${env.GOOGLE_KEY?.length}`);
-
+    if(!env.GOOGLE_KEY)return json({error:{message:'Server configuration error: Missing API key.'}},{status:500},request);
     const user=await auth(request,env.D1_SPCHCAP);
     if(!user)return json({error:'Unauthorized'},{status:401},request);
     
