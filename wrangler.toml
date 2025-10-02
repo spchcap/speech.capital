@@ -1,0 +1,5 @@
+compatibility_date = "2024-03-20"
+
+[[d1_databases]]
+binding = "D1_SPCHCAP"
+database_id = "cb2194d9-107f-4a4c-81a8-3563bc943987"
