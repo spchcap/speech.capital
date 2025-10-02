@@ -4,7 +4,7 @@ const schemaV1 = [
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
     pass_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user', 'admin', 'owner')),
+    role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user', 'mod', 'admin', 'owner')),
     banned_until DATETIME DEFAULT NULL,
     ip_address TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -55,36 +55,38 @@ const schemaV1 = [
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_post_vote ON votes(user_id, post_id) WHERE post_id IS NOT NULL;`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_comment_vote ON votes(user_id, comment_id) WHERE comment_id IS NOT NULL;`
 ];
+const json=(d,o)=>new Response(JSON.stringify(d),{...o,headers:{'Content-Type':'application/json'}});
 
 export async function onRequestPost({ request, env }) {
   try {
     const db = env.D1_SPCHCAP;
-    const { action, password } = await request.json();
+    const { action, password, ...payload } = await request.json();
 
-    if (password !== env.ADMIN_PASS) {
-      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+    if (password !== env.ADMIN_PASS) return json({ error: 'Unauthorized' }, { status: 401 });
 
     if (action === 'get') {
-      const stmt = db.prepare("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-      const { results } = await stmt.all();
-      return Response.json({ success: true, schema: results });
+      const { results } = await db.prepare("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
+      return json({ schema: results });
     }
-
     if (action === 'create') {
       const results = await db.batch(schemaV1.map(q => db.prepare(q)));
-      return Response.json({ success: true, results });
+      return json({ results });
     }
-
+    if (action === 'set_role') {
+      const { username, role } = payload;
+      if (!username || !['user','mod','admin','owner'].includes(role)) return json({ error: 'Missing or invalid fields' }, { status: 400 });
+      const { meta } = await db.prepare('UPDATE users SET role = ? WHERE username = ?').bind(role, username).run();
+      const ok = meta.changes > 0;
+      return json({ success: ok, message: ok ? `Role for ${username} set to ${role}` : 'User not found' });
+    }
     if (action === 'delete') {
       const tables = ['votes', 'comments', 'posts', 'subs', 'users'];
       const results = await db.batch(tables.map(t => db.prepare(`DROP TABLE IF EXISTS ${t}`)));
-      return Response.json({ success: true, results });
+      return json({ results });
     }
 
-    return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });
+    return json({ error: 'Invalid action' }, { status: 400 });
   } catch (e) {
-    const { message, cause } = e;
-    return Response.json({ success: false, error: { message, cause } }, { status: 500 });
+    return json({ error: { message: e.message, cause: e.cause } }, { status: 500 });
   }
 }
