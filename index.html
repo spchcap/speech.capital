@@ -12,13 +12,16 @@
   <div class="min-h-screen bg-black text-white px-4 py-8 md:py-16">
     <div class="max-w-2xl mx-auto space-y-2">
       
-      <div class="flex justify-end pr-2">
-        <a
-          href="/signup"
-          class="text-yellow-200/80 hover:text-yellow-200 transition-colors"
-        >
+      <div class="flex justify-end pr-2" x-data="{user:null}" x-init="fetch('/api/user').then(r=>r.json()).then(d=>user=d.user)">
+        <a x-show="!user" href="/signup" class="text-yellow-200/80 hover:text-yellow-200">
           <i data-lucide="user-plus" class="w-4 h-4"></i>
         </a>
+        <div x-show="user" class="flex items-center gap-2 text-xs" style="display:none">
+          <span class="text-gray-300">as <strong x-text="user?.username" class="text-yellow-200/80"></strong></span>
+          <a href="/api/logout" class="text-yellow-200/80 hover:text-yellow-200">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </a>
+        </div>
       </div>
 
       <!-- Subs Container -->
