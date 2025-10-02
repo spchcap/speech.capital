@@ -8,15 +8,14 @@ export async function onRequestPost({ request, env }) {
 
     const user = await env.D1_SPCHCAP.prepare('SELECT id, pass_hash FROM users WHERE username = ?').bind(username).first();
     if (!user || !tsEq(user.pass_hash, pass_hash)) return json({ error: 'Invalid credentials' }, { status: 401 });
-
-    const sid = crypto.randomUUID();
-    const exp = new Date(Date.now() + 2592e6); // 30 days
     
-    await env.D1_SPCHCAP.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)')
-      .bind(sid, user.id, exp.toISOString().slice(0, 19).replace('T', ' ')).run();
+    const exp = new Date(Date.now() + 2592e6); // 30 days
+    const opts = `Domain=.speech.capital; Path=/; Expires=${exp.toUTCString()}; HttpOnly; Secure; SameSite=Strict`;
+    const headers = new Headers();
+    headers.append('Set-Cookie', `auth_user=${username}; ${opts}`);
+    headers.append('Set-Cookie', `auth_hash=${user.pass_hash}; ${opts}`);
       
-    const cookie = `session_id=${sid}; Domain=.speech.capital; Path=/; Expires=${exp.toUTCString()}; HttpOnly; Secure; SameSite=Strict`;
-    return json({ success: true }, { headers: { 'Set-Cookie': cookie } });
+    return json({ success: true }, { headers });
   } catch (e) {
     return json({ error: { message: e.message } }, { status: 500 });
   }
