@@ -38,7 +38,12 @@ export async function onRequestPost({request,env}){
     const user=await auth(request,env.D1_SPCHCAP);
     if(!user)return json({error:'Unauthorized'},{status:401},request);
     
-    const{sub,title,link,content}=await request.json();
+    const body=await request.json();
+    const fd=new FormData();fd.append('secret',env.SEC_TURNSTILE);fd.append('response',body['cf-turnstile-response']);fd.append('remoteip',request.headers.get('CF-Connecting-IP'));
+    const ts=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{body:fd,method:'POST'});
+    if(!(await ts.json()).success)return json({error:'Invalid CAPTCHA'},{status:403},request);
+
+    const{sub,title,link,content}=body;
     if(!sub||!title)return json({error:'Missing fields'},{status:400},request);
     
     let sub_row=await env.D1_SPCHCAP.prepare('SELECT id FROM subs WHERE name=?').bind(sub).first();
