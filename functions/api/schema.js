@@ -24,8 +24,8 @@ const schemaV1 = [
     score INTEGER NOT NULL DEFAULT 0,
     comment_count INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(sub_id) REFERENCES subs(id) ON DELETE CASCADE,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY(sub_id) REFERENCES subs(id),
+    FOREIGN KEY(user_id) REFERENCES users(id)
   );`,
   `CREATE TABLE IF NOT EXISTS comments (
     id INTEGER PRIMARY KEY,
@@ -36,9 +36,9 @@ const schemaV1 = [
     score INTEGER NOT NULL DEFAULT 0,
     reply_count INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(parent_id) REFERENCES comments(id) ON DELETE CASCADE
+    FOREIGN KEY(post_id) REFERENCES posts(id),
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(parent_id) REFERENCES comments(id)
   );`,
   `CREATE TABLE IF NOT EXISTS votes (
     id INTEGER PRIMARY KEY,
@@ -47,17 +47,10 @@ const schemaV1 = [
     comment_id INTEGER,
     direction INTEGER NOT NULL CHECK(direction IN (1, -1)),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(post_id) REFERENCES posts(id),
+    FOREIGN KEY(comment_id) REFERENCES comments(id),
     CHECK ((post_id IS NOT NULL AND comment_id IS NULL) OR (post_id IS NULL AND comment_id IS NOT NULL))
-  );`,
-  `CREATE TABLE IF NOT EXISTS sessions (
-    id TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
-    expires_at DATETIME NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_post_vote ON votes(user_id, post_id) WHERE post_id IS NOT NULL;`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_comment_vote ON votes(user_id, comment_id) WHERE comment_id IS NOT NULL;`
@@ -84,7 +77,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (action === 'delete') {
-      const tables = ['votes', 'comments', 'posts', 'subs', 'users', 'sessions'];
+      const tables = ['votes', 'comments', 'posts', 'subs', 'users'];
       const results = await db.batch(tables.map(t => db.prepare(`DROP TABLE IF EXISTS ${t}`)));
       return Response.json({ success: true, results });
     }
