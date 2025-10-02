@@ -21,6 +21,8 @@ const schemaV1 = [
     title TEXT NOT NULL,
     link TEXT,
     content TEXT,
+    score INTEGER NOT NULL DEFAULT 0,
+    comment_count INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(sub_id) REFERENCES subs(id),
     FOREIGN KEY(user_id) REFERENCES users(id)
@@ -31,6 +33,8 @@ const schemaV1 = [
     user_id INTEGER NOT NULL,
     parent_id INTEGER,
     content TEXT NOT NULL,
+    score INTEGER NOT NULL DEFAULT 0,
+    reply_count INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(post_id) REFERENCES posts(id),
     FOREIGN KEY(user_id) REFERENCES users(id),
@@ -55,7 +59,11 @@ const schemaV1 = [
 export async function onRequestPost({ request, env }) {
   try {
     const db = env.D1_SPCHCAP;
-    const { action } = await request.json();
+    const { action, password } = await request.json();
+
+    if (password !== env.ADMIN_PASS) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
 
     if (action === 'get') {
       const stmt = db.prepare("SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
@@ -65,6 +73,12 @@ export async function onRequestPost({ request, env }) {
 
     if (action === 'create') {
       const results = await db.batch(schemaV1.map(q => db.prepare(q)));
+      return Response.json({ success: true, results });
+    }
+
+    if (action === 'delete') {
+      const tables = ['votes', 'comments', 'posts', 'subs', 'users'];
+      const results = await db.batch(tables.map(t => db.prepare(`DROP TABLE IF EXISTS ${t}`)));
       return Response.json({ success: true, results });
     }
 
