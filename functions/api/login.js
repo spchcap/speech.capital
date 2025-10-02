@@ -10,7 +10,7 @@ export async function onRequestPost({ request, env }) {
     const { username, pass_hash } = await request.json();
     if (!username || !pass_hash) return json({ error: 'Missing fields' }, { status: 400 });
 
-    const user = await env.D1_SPCHCAP.prepare('SELECT id, pass_hash FROM users WHERE username = ?').bind(username).first();
+    const user = await env.D1_SPCHCAP.prepare('SELECT id, pass_hash, role FROM users WHERE username = ?').bind(username).first();
     if (!user || !tsEq(user.pass_hash, pass_hash)) return json({ error: 'Invalid credentials' }, { status: 401 });
     
     const exp = new Date(Date.now() + 2592e6); // 30 days
@@ -18,6 +18,7 @@ export async function onRequestPost({ request, env }) {
     const headers = new Headers();
     headers.append('Set-Cookie', `auth_user=${username}; ${opts}`);
     headers.append('Set-Cookie', `auth_hash=${user.pass_hash}; ${opts}`);
+    headers.append('Set-Cookie', `auth_role=${user.role}; ${opts}`);
       
     return json({ success: true }, { headers });
   } catch (e) {
