@@ -2,7 +2,7 @@ const json=(d,o={},req)=>{const h=new Headers(o.headers);h.set('Content-Type','a
 const cookie=c=>(c.match(/auth_user=([^;]+)/)?.[1]||null);
 const hash=c=>(c.match(/auth_hash=([^;]+)/)?.[1]||null);
 const tsEq=(a,b)=>{if(!a||!b)return!1;let d=a.length^b.length;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0};
-const auth=async(req,db)=>{const c=req.headers.get('Cookie')||'',u=cookie(c),h=hash(c);if(!u||!h)return null;const user=await db.prepare('SELECT id,username,role,pass_hash FROM users WHERE username=?').bind(u).first();return user&&tsEq(user.pass_hash,h)?user:null};
+const auth=async(req,db)=>{const c=req.headers.get('Cookie')||'',u=cookie(c),h=hash(c);if(!u||!h)return null;const user=await db.prepare('SELECT id,username,role,pass_hash,banned_until FROM users WHERE username=?').bind(u).first();if(!user||!tsEq(user.pass_hash,h)||(user.banned_until&&new Date(user.banned_until.replace(' ','T')+'Z')>new Date()))return null;return user};
 
 export async function onRequest({request,env}){
   if(request.method==='OPTIONS'){
