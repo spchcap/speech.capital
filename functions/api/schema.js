@@ -1,4 +1,4 @@
-const schema = [
+const schemaV1 = [
   `CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
@@ -61,7 +61,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (action === 'create') {
-      const stmts = schema.map(sql => db.prepare(sql));
+      const stmts = schemaV1.map(sql => db.prepare(sql));
       const results = await db.batch(stmts);
       return Response.json({ success: true, results });
     }
