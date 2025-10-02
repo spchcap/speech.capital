@@ -35,6 +35,9 @@ export async function onRequestGet({request,env}){
 
 export async function onRequestPost({request,env}){
   try{
+    // Temporarily log to check if the key is loaded. REMOVE THIS LATER.
+    console.log(`GOOGLE_KEY length: ${env.GOOGLE_KEY?.length}`);
+
     const user=await auth(request,env.D1_SPCHCAP);
     if(!user)return json({error:'Unauthorized'},{status:401},request);
     
