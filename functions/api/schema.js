@@ -43,9 +43,12 @@ const schemaV1 = [
     comment_id INTEGER,
     direction INTEGER NOT NULL CHECK(direction IN (1, -1)),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(post_id) REFERENCES posts(id),
+    FOREIGN KEY(comment_id) REFERENCES comments(id),
+    CHECK ((post_id IS NOT NULL AND comment_id IS NULL) OR (post_id IS NULL AND comment_id IS NOT NULL)),
     UNIQUE(user_id, post_id),
-    UNIQUE(user_id, comment_id),
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    UNIQUE(user_id, comment_id)
   );`
 ];
 
@@ -61,13 +64,12 @@ export async function onRequestPost({ request, env }) {
     }
 
     if (action === 'create') {
-      const results = await db.exec(schemaV1.join(''));
+      const results = await db.exec(schemaV1.join('\n'));
       return Response.json({ success: true, results });
     }
 
     return Response.json({ success: false, error: 'Invalid action' }, { status: 400 });
   } catch (e) {
-    const { message, cause } = e;
-    return Response.json({ success: false, error: { message, cause } }, { status: 500 });
+    return Response.json({ success: false, error: e.message }, { status: 500 });
   }
 }
