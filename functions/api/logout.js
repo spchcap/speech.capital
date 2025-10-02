@@ -3,6 +3,7 @@ export async function onRequest() {
   const headers = new Headers();
   headers.append('Set-Cookie', `auth_user=; ${opts}`);
   headers.append('Set-Cookie', `auth_hash=; ${opts}`);
+  headers.append('Set-Cookie', `auth_role=; ${opts}`);
   headers.append('Location', '/');
   return new Response(null, { status: 302, headers });
 }
