@@ -3,44 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>speech.capital</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body>
-  <div class="min-h-screen bg-black text-white px-4 py-8 md:py-16">
-    <div class="max-w-2xl mx-auto space-y-6">
-      
-      <!-- Subs Container -->
-      <div class="border border-yellow-200/30 min-h-[60vh] p-4 md:p-6 space-y-2">
-        <a 
-          href="https://free.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          free.speech.capital
-        </a>
-        <br>
-        <a 
-          href="https://artificial.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          artificial.speech.capital
-        </a>
-        <br>
-        <a 
-          href="https://dev.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          dev.speech.capital
-        </a>
+<body class="bg-[#f6f6ef] font-sans">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="bg-[#ff6600] px-2 py-1">
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 bg-white border border-white"></div>
+        <span class="font-bold text-sm">speech.capital</span>
       </div>
+    </div>
 
+    <!-- Content -->
+    <div class="bg-[#f6f6ef] px-4 py-6">
+      <table class="w-full border-collapse">
+        <tr class="align-top">
+          <td class="text-[#828282] pr-2 text-right w-8">1.</td>
+          <td class="pb-1">
+            <a href="https://free.speech.capital" 
+               class="text-sm text-black hover:underline visited:text-[#828282]">
+              free.speech.capital
+            </a>
+          </td>
+        </tr>
+        <tr><td colspan="2" class="h-2"></td></tr>
+        
+        <tr class="align-top">
+          <td class="text-[#828282] pr-2 text-right">2.</td>
+          <td class="pb-1">
+            <a href="https://artificial.speech.capital" 
+               class="text-sm text-black hover:underline visited:text-[#828282]">
+              artificial.speech.capital
+            </a>
+          </td>
+        </tr>
+        <tr><td colspan="2" class="h-2"></td></tr>
+        
+        <tr class="align-top">
+          <td class="text-[#828282] pr-2 text-right">3.</td>
+          <td class="pb-1">
+            <a href="https://dev.speech.capital" 
+               class="text-sm text-black hover:underline visited:text-[#828282]">
+              dev.speech.capital
+            </a>
+          </td>
+        </tr>
+      </table>
     </div>
   </div>
-
-  <script>
-    lucide.createIcons();
-  </script>
 </body>
 </html>
