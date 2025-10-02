@@ -55,7 +55,11 @@ const schemaV1 = [
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_post_vote ON votes(user_id, post_id) WHERE post_id IS NOT NULL;`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_comment_vote ON votes(user_id, comment_id) WHERE comment_id IS NOT NULL;`
 ];
-const json=(d,o)=>new Response(JSON.stringify(d),{...o,headers:{'Content-Type':'application/json'}});
+const json = (d, o = {}) => {
+  const h = new Headers(o.headers);
+  h.set('Content-Type', 'application/json');
+  return new Response(JSON.stringify(d), { ...o, headers: h });
+};
 
 export async function onRequestPost({ request, env }) {
   try {
