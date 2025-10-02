@@ -18,7 +18,7 @@ const schema = [
     sub_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
-    url TEXT,
+    link TEXT,
     content TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(sub_id) REFERENCES subs(id),
