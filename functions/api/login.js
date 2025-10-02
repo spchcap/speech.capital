@@ -7,7 +7,15 @@ const tsEq=(a,b)=>{let d=a.length^b.length;for(let i=0;i<a.length;i++)d|=a.charC
 
 export async function onRequestPost({ request, env }) {
   try {
-    const { username, pass_hash } = await request.json();
+    const body = await request.json();
+    const fd = new FormData();
+    fd.append('secret', env.SEC_TURNSTILE);
+    fd.append('response', body['cf-turnstile-response']);
+    fd.append('remoteip', request.headers.get('CF-Connecting-IP'));
+    const ts = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { body: fd, method: 'POST' });
+    if (!(await ts.json()).success) return json({ error: 'Invalid CAPTCHA' }, { status: 403 });
+
+    const { username, pass_hash } = body;
     if (!username || !pass_hash) return json({ error: 'Missing fields' }, { status: 400 });
 
     const user = await env.D1_SPCHCAP.prepare('SELECT id, pass_hash, role FROM users WHERE username = ?').bind(username).first();
