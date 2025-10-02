@@ -3,6 +3,7 @@ const schema = [
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
+    pass_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user', 'admin', 'owner')),
     banned_until DATETIME DEFAULT NULL,
     ip_address TEXT,
