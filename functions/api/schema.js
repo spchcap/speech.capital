@@ -2,7 +2,10 @@ const schema = [
   `CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
     role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('user', 'admin', 'owner')),
+    banned_until DATETIME DEFAULT NULL,
+    ip_address TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );`,
   `CREATE TABLE IF NOT EXISTS subs (
