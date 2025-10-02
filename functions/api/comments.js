@@ -24,7 +24,12 @@ export async function onRequestPost({request,env}){
     const user=await auth(request,env.D1_SPCHCAP);
     if(!user)return json({error:'Unauthorized'},{status:401},request);
     
-    const{post_id,parent_id,content}=await request.json();
+    const body=await request.json();
+    const fd=new FormData();fd.append('secret',env.SEC_TURNSTILE);fd.append('response',body['cf-turnstile-response']);fd.append('remoteip',request.headers.get('CF-Connecting-IP'));
+    const ts=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{body:fd,method:'POST'});
+    if(!(await ts.json()).success)return json({error:'Invalid CAPTCHA'},{status:403},request);
+    
+    const{post_id,parent_id,content}=body;
     if(!post_id||!content)return json({error:'Missing fields'},{status:400},request);
     
     const{meta}=await env.D1_SPCHCAP.prepare('INSERT INTO comments(post_id,user_id,parent_id,content)VALUES(?,?,?,?)').bind(post_id,user.id,parent_id||null,content).run();
