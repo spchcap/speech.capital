@@ -1,4 +1,8 @@
-const json=(d,o)=>new Response(JSON.stringify(d),{...o,headers:{'Content-Type':'application/json',...(o?.headers||{})}});
+const json = (d, o = {}) => {
+  const h = new Headers(o.headers);
+  h.set('Content-Type', 'application/json');
+  return new Response(JSON.stringify(d), { ...o, headers: h });
+};
 const tsEq=(a,b)=>{let d=a.length^b.length;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0};
 
 export async function onRequestPost({ request, env }) {
