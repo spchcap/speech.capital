@@ -19,8 +19,25 @@ export async function onRequestPost({request,env}){
   if(!user||!['mod','admin','owner'].includes(user.role))return json({error:'Forbidden'},{status:403},request);
   const{action,...payload}=await request.json(),db=env.D1_SPCHCAP;
   try{
-    if(action==='delete_post'){await db.prepare("UPDATE posts SET title='[Deleted]',content='[Deleted]',link=NULL WHERE id=?").bind(payload.post_id).run();return json({success:true},{},request)}
-    if(action==='delete_comment'){await db.prepare("UPDATE comments SET content='[Deleted]' WHERE id=?").bind(payload.comment_id).run();return json({success:true},{},request)}
+    if(action==='delete_post_overwrite'){await db.prepare("UPDATE posts SET title='[Deleted]',content='[Deleted]',link=NULL WHERE id=?").bind(payload.post_id).run();return json({success:true},{},request)}
+    if(action==='delete_comment_overwrite'){await db.prepare("UPDATE comments SET content='[Deleted]' WHERE id=?").bind(payload.comment_id).run();return json({success:true},{},request)}
+    if(action==='delete_post_wipe'){
+      const{post_id}=payload;
+      const c=await db.prepare('SELECT COUNT(*)as c FROM comments WHERE post_id=?').bind(post_id).first('c');
+      if(c>0)return json({error:{message:`Post has comments. Wipe them first.`}},{status:409},request);
+      await db.batch([db.prepare('DELETE FROM votes WHERE post_id=?').bind(post_id),db.prepare('DELETE FROM posts WHERE id=?').bind(post_id)]);
+      return json({success:true},{},request);
+    }
+    if(action==='delete_comment_wipe'){
+      const{comment_id}=payload;
+      const c=await db.prepare('SELECT post_id,parent_id,reply_count FROM comments WHERE id=?').bind(comment_id).first();
+      if(!c)return json({error:'Comment not found'},{status:404},request);
+      if(c.reply_count>0)return json({error:{message:`Comment has replies. Wipe them first.`}},{status:409},request);
+      const batch=[db.prepare('DELETE FROM votes WHERE comment_id=?').bind(comment_id),db.prepare('DELETE FROM comments WHERE id=?').bind(comment_id),db.prepare('UPDATE posts SET comment_count=comment_count-1 WHERE id=?').bind(c.post_id)];
+      if(c.parent_id)batch.push(db.prepare('UPDATE comments SET reply_count=reply_count-1 WHERE id=?').bind(c.parent_id));
+      await db.batch(batch);
+      return json({success:true},{},request);
+    }
     if(action==='ban_user'){
       const{user_id,days}=payload;
       const target=await db.prepare('SELECT role FROM users WHERE id=?').bind(user_id).first();
