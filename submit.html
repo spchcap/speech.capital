@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submit - speech.capital</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest" defer></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <style>body{font-family:ui-monospace,monospace}</style>
@@ -21,7 +22,7 @@
     </div>
   </header>
 
-  <main class="max-w-2xl mx-auto py-8 px-4" x-data="f()">
+  <main class="max-w-2xl mx-auto py-8 px-4" x-data="f()" x-init="lucide.createIcons()">
     <h1 class="text-xl font-bold mb-4">Submit a Post</h1>
     <form @submit.prevent="s" class="bg-white p-6 rounded border border-gray-300 space-y-4">
       <div>
@@ -44,7 +45,7 @@
       <p x-show="e" x-text="e" class="text-red-600 text-sm"></p>
     </form>
     <div class="mt-6 flex items-center justify-center gap-2 text-xs text-green-700">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <i data-lucide="shield" class="w-3.5 h-3.5"></i>
       <span>This site is moderated by Gemini 2.5 Flash Lite</span>
     </div>
   </main>
@@ -56,4 +57,3 @@ f=()=>({t:'',l:'',c:'',e:null,loading:false,async s(){this.loading=!0;this.e=nul
 </script>
 </body>
 </html>
-
