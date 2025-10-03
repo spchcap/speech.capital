@@ -16,10 +16,9 @@
     <input id="adminPass" type="password" class="bg-gray-800 border border-gray-600 rounded w-full px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
   </div>
   
-  <div class="flex flex-wrap gap-4">
+  <div class="flex gap-4">
     <button id="getSchema" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Get Schema</button>
     <button id="createSchema" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">Create/Verify Schema</button>
-    <button id="migrateV2" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">Migrate to V2</button>
     <button id="deleteSchema" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Delete Schema</button>
   </div>
   
@@ -60,7 +59,7 @@ const exec = async (action, payload = {}) => {
     });
     const data = await res.json();
     out.textContent = JSON.stringify(data, null, 2);
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${data.error?.message || data.error || data.message}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${data.error?.message || data.error}`);
   } catch (e) {
     out.textContent = `Error: ${e.message}`;
   }
@@ -68,7 +67,6 @@ const exec = async (action, payload = {}) => {
 
 el('getSchema').addEventListener('click', () => exec('get'));
 el('createSchema').addEventListener('click', () => exec('create'));
-el('migrateV2').addEventListener('click', () => exec('migrate_v2'));
 el('setRole').addEventListener('click', () => user.value && exec('set_role', { username: user.value, role: role.value }));
 el('deleteSchema').addEventListener('click', () => {
   if (confirm('DELETE ALL TABLES? This is irreversible.')) exec('delete');
@@ -76,3 +74,4 @@ el('deleteSchema').addEventListener('click', () => {
 </script>
 </body>
 </html>
+
