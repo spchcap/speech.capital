@@ -49,7 +49,7 @@ export async function onRequestPost({request,env}){
     
     const mod=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${env.GOOGLE_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:`Is this appropriate for a public forum? Respond ONLY "yes" or "no".\n\n${title}\n\n${content||''}`}]}]})});
     if(!mod.ok){const err=await mod.text();return json({error:{message:`Moderation failed: ${err}`}},{status:500},request)}
-    if((await mod.json()).candidates?.[0]?.content.parts[0].text.trim().toLowerCase()!=='yes')return json({error:{message:'Post rejected by Gemini 2.5 Flash Lite.'}},{status:400},request);
+    if(!(await mod.json()).candidates?.[0]?.content.parts[0].text.trim().toLowerCase().includes('yes'))return json({error:{message:'Post rejected by Gemini 2.5 Flash Lite.'}},{status:400},request);
 
     let sub_row=await env.D1_SPCHCAP.prepare('SELECT id FROM subs WHERE name=?').bind(sub).first();
     if(!sub_row){
@@ -61,4 +61,3 @@ export async function onRequestPost({request,env}){
     return json({id:meta.last_row_id},{status:201},request);
   }catch(e){return json({error:{message:e.message}},{status:500},request)}
 }
-
