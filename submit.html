@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit - speech.capital</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>body{font-family:ui-monospace,monospace}</style>
+</head>
+<body class="bg-gray-100">
+<div class="min-h-screen">
+  <header class="bg-gray-900 border-b border-gray-800">
+    <div class="max-w-5xl mx-auto px-2 py-1 flex items-center justify-between">
+      <a href="/" class="flex items-center">
+        <span class="font-bold text-white text-xs">
+          <span id="subdomain"></span><span>speech.capital</span>
+        </span>
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto py-8 px-4" x-data="f()">
+    <h1 class="text-xl font-bold mb-4">Submit a Post</h1>
+    <form @submit.prevent="s" class="bg-white p-6 rounded border border-gray-300 space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Title</label>
+        <input x-model="t" type="text" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Link (optional)</label>
+        <input x-model="l" type="url" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="https://...">
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between">
+          <label class="block text-sm font-medium mb-1">Text (for self posts)</label>
+          <span class="text-xs text-gray-500">Markdown supported</span>
+        </div>
+        <textarea x-model="c" rows="8" class="w-full border border-gray-300 rounded px-3 py-2 text-sm"></textarea>
+      </div>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAB4klN__r6wwJXs4"></div>
+      <button type="submit" :disabled="loading" class="bg-gray-900 text-white px-4 py-2 rounded text-sm hover:bg-gray-800" x-text="loading?'Moderating...':'Submit'"></button>
+      <p x-show="e" x-text="e" class="text-red-600 text-sm"></p>
+    </form>
+    <div class="mt-6 flex items-center justify-center gap-2 text-xs text-green-700">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>This site is moderated by Gemini 2.5 Flash Lite</span>
+    </div>
+  </main>
+</div>
+<script>
+const host=window.location.hostname,parts=host.split('.');
+if(parts.length>2)document.getElementById('subdomain').textContent=parts[0]+'.';
+f=()=>({t:'',l:'',c:'',e:null,loading:false,async s(){this.loading=!0;this.e=null;try{const sub=parts.length>2?parts[0]:'free';const token=this.$el.querySelector('[name="cf-turnstile-response"]')?.value;if(!token)throw new Error('Please complete the CAPTCHA.');const r=await fetch('https://speech.capital/api/posts',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({sub,title:this.t,link:this.l||null,content:this.c||null,'cf-turnstile-response':token})});if(!r.ok){const d=await r.json();throw new Error(d.error?.message||'Submission failed')}const{id}=await r.json();window.location.href=`/${id}`}catch(e){this.e=e.message}finally{this.loading=!1}}})
+</script>
+</body>
+</html>
