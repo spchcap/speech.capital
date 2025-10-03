@@ -28,7 +28,7 @@ export async function onRequestGet({request,env}){
     if(!sub_row)return json({posts:[]},{},request);
     
     let order=sort==='new'?'ORDER BY p.created_at DESC':'ORDER BY (p.score/(CAST((julianday("now")-julianday(p.created_at))*24 AS REAL)+2)) DESC';
-    const{results}=await env.D1_SPCHCAP.prepare(`SELECT p.id,p.user_id,p.title,p.link,p.content,p.score,p.comment_count,p.created_at,u.username${user?',v.direction as voted':''} FROM posts p JOIN users u ON p.user_id=u.id ${user?'LEFT JOIN votes v ON v.post_id=p.id AND v.user_id=?':''} WHERE p.sub_id=? ${order} LIMIT 30`).bind(...(user?[user.id,sub_row.id]:[sub_row.id])).all();
+    const{results}=await env.D1_SPCHCAP.prepare(`SELECT p.id,p.user_id,p.title,p.link,p.content,p.score,p.comment_count,p.created_at,p.post_type,u.username${user?',v.direction as voted':''} FROM posts p JOIN users u ON p.user_id=u.id ${user?'LEFT JOIN votes v ON v.post_id=p.id AND v.user_id=?':''} WHERE p.sub_id=? ${order} LIMIT 30`).bind(...(user?[user.id,sub_row.id]:[sub_row.id])).all();
     return json({posts:results},{},request);
   }catch(e){return json({error:{message:e.message}},{status:500},request)}
 }
@@ -44,8 +44,9 @@ export async function onRequestPost({request,env}){
     const ts=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{body:fd,method:'POST'});
     if(!(await ts.json()).success)return json({error:'Invalid CAPTCHA'},{status:403},request);
 
-    const{sub,title,link,content}=body;
-    if(!sub||!title)return json({error:'Missing fields'},{status:400},request);
+    const{sub,title,link,content,post_type}=body;
+    if(!sub||!title||!post_type||!['text','link'].includes(post_type))return json({error:'Missing or invalid fields'},{status:400},request);
+    if(post_type==='link'&&!link)return json({error:'Link URL required for link post'},{status:400},request);
     
     const mod=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${env.GOOGLE_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:`Is this appropriate for a public forum? Respond ONLY "yes" or "no".\n\n${title}\n\n${content||''}`}]}]})});
     if(!mod.ok){const err=await mod.text();return json({error:{message:`Moderation failed: ${err}`}},{status:500},request)}
@@ -57,7 +58,8 @@ export async function onRequestPost({request,env}){
       sub_row=await env.D1_SPCHCAP.prepare('SELECT id FROM subs WHERE name=?').bind(sub).first();
     }
     
-    const{meta}=await env.D1_SPCHCAP.prepare('INSERT INTO posts(sub_id,user_id,title,link,content)VALUES(?,?,?,?,?)').bind(sub_row.id,user.id,title,link,content).run();
+    const pLink=post_type==='link'?link:null,pContent=post_type==='text'?content:null;
+    const{meta}=await env.D1_SPCHCAP.prepare('INSERT INTO posts(sub_id,user_id,title,link,content,post_type)VALUES(?,?,?,?,?,?)').bind(sub_row.id,user.id,title,pLink,pContent,post_type).run();
     return json({id:meta.last_row_id},{status:201},request);
   }catch(e){return json({error:{message:e.message}},{status:500},request)}
 }
