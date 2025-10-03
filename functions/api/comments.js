@@ -34,7 +34,7 @@ export async function onRequestPost({request,env}){
     
     const mod=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${env.GOOGLE_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:`Is this appropriate for a public forum? Respond ONLY "yes" or "no".\n\n${content}`}]}]})});
     if(!mod.ok){const err=await mod.text();return json({error:{message:`Moderation failed: ${err}`}},{status:500},request)}
-    if((await mod.json()).candidates?.[0]?.content.parts[0].text.trim().toLowerCase()!=='yes')return json({error:{message:'Comment rejected by Gemini 2.5 Flash Lite.'}},{status:400},request);
+    if(!(await mod.json()).candidates?.[0]?.content.parts[0].text.trim().toLowerCase().includes('yes'))return json({error:{message:'Comment rejected by Gemini 2.5 Flash Lite.'}},{status:400},request);
 
     const{meta}=await env.D1_SPCHCAP.prepare('INSERT INTO comments(post_id,user_id,parent_id,content)VALUES(?,?,?,?)').bind(post_id,user.id,parent_id||null,content).run();
     await env.D1_SPCHCAP.prepare('UPDATE posts SET comment_count=comment_count+1 WHERE id=?').bind(post_id).run();
