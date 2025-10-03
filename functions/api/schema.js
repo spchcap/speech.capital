@@ -18,7 +18,6 @@ const schemaV1 = [
     id INTEGER PRIMARY KEY,
     sub_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
-    post_type TEXT NOT NULL DEFAULT 'text' CHECK(post_type IN ('text', 'link')),
     title TEXT NOT NULL,
     link TEXT,
     content TEXT,
@@ -56,10 +55,6 @@ const schemaV1 = [
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_post_vote ON votes(user_id, post_id) WHERE post_id IS NOT NULL;`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_comment_vote ON votes(user_id, comment_id) WHERE comment_id IS NOT NULL;`
 ];
-const schemaV2Migration = [
-  `ALTER TABLE posts ADD COLUMN post_type TEXT NOT NULL DEFAULT 'text' CHECK(post_type IN ('text', 'link'));`,
-  `UPDATE posts SET post_type = 'link' WHERE link IS NOT NULL;`
-];
 const json = (d, o = {}) => {
   const h = new Headers(o.headers);
   h.set('Content-Type', 'application/json');
@@ -81,10 +76,6 @@ export async function onRequestPost({ request, env }) {
       const results = await db.batch(schemaV1.map(q => db.prepare(q)));
       return json({ results });
     }
-    if (action === 'migrate_v2') {
-      const results = await db.batch(schemaV2Migration.map(q => db.prepare(q)));
-      return json({ success: true, results });
-    }
     if (action === 'set_role') {
       const { username, role } = payload;
       if (!username || !['user','mod','admin','owner'].includes(role)) return json({ error: 'Missing or invalid fields' }, { status: 400 });
@@ -100,9 +91,7 @@ export async function onRequestPost({ request, env }) {
 
     return json({ error: 'Invalid action' }, { status: 400 });
   } catch (e) {
-    if (e.message?.includes('duplicate column name')) {
-      return json({ success: false, message: 'Column already exists.' }, { status: 409 });
-    }
     return json({ error: { message: e.message, cause: e.cause } }, { status: 500 });
   }
 }
+
