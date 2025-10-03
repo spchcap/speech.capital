@@ -44,6 +44,18 @@
           <div class="flex justify-end mt-2" x-show="user && user.username===profile.user.username">
             <a href="/api/logout" class="text-yellow-200/80 hover:text-yellow-200 text-xs flex items-center gap-1"><i data-lucide="log-out" class="w-4 h-4"></i>Logout</a>
           </div>
+          
+          <h2 class="text-lg text-yellow-200/90 mt-6 border-b border-yellow-200/30 pb-2 mb-4">Posts</h2>
+          <div class="space-y-3 text-sm">
+            <p x-show="profile.posts.length===0" class="text-gray-400">No posts yet.</p>
+            <template x-for="p in profile.posts" :key="p.id">
+              <div>
+                <a :href="`https://${p.sub_name}.speech.capital/${p.id}`" class="text-yellow-200/80 hover:underline" x-text="p.title"></a>
+                <div class="text-xs text-gray-500 mt-1"><span x-text="ago(p.created_at)"></span> on <span class="font-bold" x-text="p.sub_name"></span></div>
+              </div>
+            </template>
+          </div>
+
           <h2 class="text-lg text-yellow-200/90 mt-6 border-b border-yellow-200/30 pb-2 mb-4">Comments</h2>
           <div class="space-y-4 text-sm">
             <p x-show="profile.comments.length===0" class="text-gray-400">No comments yet.</p>
@@ -61,7 +73,7 @@
 
   <script>
     lucide.createIcons();
-    page=()=>({user:null,view:'subs',profile:{user:null,comments:[]},loading:!1,init(){fetch('/api/user').then(r=>r.json()).then(d=>this.user=d.user);const p=location.pathname.replace(/\/$/,"");if(p&&!['/login','/signup','/admin'].includes(p)){const u=p.substring(1).split('/')[0];this.view='user';this.loadUser(u)}},async loadUser(u){this.loading=!0;try{const r=await fetch(`/api/users/${u}`);if(!r.ok)throw'';this.profile=await r.json()}catch(e){this.profile.user=null}finally{this.loading=!1;this.$nextTick(()=>lucide.createIcons())}},formatDate(d){return d?new Date(d.replace(' ','T')+'Z').toLocaleDateString():''},ago(d){if(!d)return'';const s=Math.floor((new Date-new Date(d.replace(' ','T')+'Z'))/1e3);return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago'}})
+    page=()=>({user:null,view:'subs',profile:{user:null,comments:[],posts:[]},loading:!1,init(){fetch('/api/user').then(r=>r.json()).then(d=>this.user=d.user);const p=location.pathname.replace(/\/$/,"");if(p&&!['/login','/signup','/admin'].includes(p)){const u=p.substring(1).split('/')[0];this.view='user';this.loadUser(u)}},async loadUser(u){this.loading=!0;try{const r=await fetch(`/api/users/${u}`);if(!r.ok)throw'';this.profile=await r.json()}catch(e){this.profile.user=null}finally{this.loading=!1;this.$nextTick(()=>lucide.createIcons())}},formatDate(d){return d?new Date(d.replace(' ','T')+'Z').toLocaleDateString():''},ago(d){if(!d)return'';const s=Math.floor((new Date-new Date(d.replace(' ','T')+'Z'))/1e3);return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago'}})
   </script>
 </body>
 </html>
