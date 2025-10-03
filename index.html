@@ -27,9 +27,14 @@
 <div class="min-h-screen">
   <header class="bg-gray-900 border-b border-gray-800">
     <div class="max-w-5xl mx-auto px-2 py-1 flex items-center justify-between">
-      <a href="/" class="flex items-center">
-        <span class="font-bold text-white text-xs"><span id="subdomain"></span><span>speech.capital</span></span>
-      </a>
+      <div class="flex items-center gap-2">
+        <a href="https://speech.capital" class="text-gray-400 hover:text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8"/><path d="m20 12-3-3-3 3"/><path d="M11 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="M19 12h.01"/></svg>
+        </a>
+        <a href="/" class="flex items-center">
+          <span class="font-bold text-white text-xs"><span id="subdomain"></span><span>speech.capital</span></span>
+        </a>
+      </div>
       <nav class="flex items-center gap-3 text-xs text-gray-400">
         <a href="/?sort=hot" class="hover:text-white">hot</a><a href="/?sort=new" class="hover:text-white">new</a>
         <a href="https://speech.capital/signup" id="signup-link" class="hover:text-white">signup</a>
@@ -69,7 +74,7 @@
         <h2 class="text-lg font-semibold mt-6 border-b border-gray-200 pb-2 mb-4">Comments</h2>
         <div class="space-y-4 text-sm">
           <p x-show="profile.comments.length===0" class="text-gray-400">No comments yet.</p>
-          <template x-for="c in profile.comments" :key="c.id"><div class="border-l-2 border-gray-300 pl-4"><p class="text-gray-800 whitespace-pre-wrap" x-text="c.content"></p><div class="text-xs text-gray-500 mt-2">on <a :href="`https://${c.sub_name}.speech.capital/${c.post_id}`" class="text-blue-600 hover:underline" x-text="c.post_title"></a> · <span x-text="ago(c.created_at)"></span></div></div></template>
+          <template x-for="c in profile.comments" :key="c.id"><div class="border-l-2 border-gray-300 pl-4"><p class="text-gray-800 whitespace-pre-wrap" x-text="c.content"></p><div class="text-xs text-gray-500 mt-2">on <a :href="`https://s{c.sub_name}.speech.capital/${c.post_id}`" class="text-blue-600 hover:underline" x-text="c.post_title"></a> · <span x-text="ago(c.created_at)"></span></div></div></template>
         </div>
       </div>
     </div>
