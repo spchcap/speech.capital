@@ -52,8 +52,7 @@
 <script>
 const host=window.location.hostname,parts=host.split('.');
 if(parts.length>2)document.getElementById('subdomain').textContent=parts[0]+'.';
-f=()=>({t:'',l:'',c:'',e:null,loading:false,async s(){this.loading=!0;this.e=null;try{const sub=parts.length>2?parts[0]:'free';const token=this.$el.querySelector('[name="cf-turnstile-response"]')?.value;if(!token)throw new Error('Please complete the CAPTCHA.');const r=await fetch('https://speech.capital/api/posts',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({sub,title:this.t,link:this.l||null,content:this.c||null,'cf-turnstile-response':token})});if(!r.ok){const d=await r.json();throw new Error(d.error?.message||'Submission failed')}const{id}=await r.json();window.location.href=`/${id}`}catch(e){this.e=e.message}finally{this.loading=!1}}})
+f=()=>({t:'',l:'',c:'',e:null,loading:false,async s(){this.loading=!0;this.e=null;try{const sub=parts.length>2?parts[0]:'free';const token=this.$el.querySelector('[name="cf-turnstile-response"]')?.value;if(!token)throw new Error('Please complete the CAPTCHA.');const r=await fetch('https://speech.capital/api/posts',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({sub,title:this.t,link:this.l||null,content:this.c||null,'cf-turnstile-response':token})});if(!r.ok){const d=await r.json();throw new Error(d.error?.message||'Submission failed')}const{id}=await r.json();window.location.href=`/${id}`}catch(e){this.e=e.message;turnstile.reset(this.$el.querySelector('.cf-turnstile'))}finally{this.loading=!1}}})
 </script>
 </body>
 </html>
-
