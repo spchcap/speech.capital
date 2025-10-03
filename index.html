@@ -3,59 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>speech.capital</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>body{font-family:monospace}</style>
 </head>
-<body>
-  <div class="min-h-screen bg-black text-white px-4 py-8 md:py-16">
+<body class="bg-black text-white">
+  <div class="min-h-screen px-4 py-8 md:py-16" x-data="page()" x-init="init()">
     <div class="max-w-2xl mx-auto space-y-2">
       
-      <div class="flex justify-end pr-2" x-data="{user:null}" x-init="fetch('/api/user').then(r=>r.json()).then(d=>user=d.user)">
-        <a x-show="!user" href="/signup" class="text-yellow-200/80 hover:text-yellow-200">
+      <div class="flex justify-end pr-2 h-6">
+        <a x-show="!user && !loading" href="/signup" class="text-yellow-200/80 hover:text-yellow-200">
           <i data-lucide="user-plus" class="w-4 h-4"></i>
         </a>
-        <div x-show="user" class="flex items-center gap-2 text-xs" style="display:none">
+        <div x-show="user" class="flex items-center gap-2 text-xs">
           <span class="text-gray-300">as 
-            <strong x-text="user?.username" class="text-yellow-200/80"></strong>
-            (<span x-text="user?.role"></span>)
+            <a :href="'/'+user.username" class="text-yellow-200/80 font-bold hover:underline" x-text="user.username"></a>
+            (<span x-text="user.role"></span>)
           </span>
-          <a href="/api/logout" class="text-yellow-200/80 hover:text-yellow-200">
-            <i data-lucide="log-out" class="w-4 h-4"></i>
-          </a>
         </div>
       </div>
 
-      <!-- Subs Container -->
-      <div class="border border-yellow-200/30 min-h-[60vh] p-4 md:p-6 space-y-2">
-        <a 
-          href="https://free.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          free.speech.capital
-        </a>
-        <br>
-        <a 
-          href="https://artificial.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          artificial.speech.capital
-        </a>
-        <br>
-        <a 
-          href="https://dev.speech.capital" 
-          class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors"
-        >
-          dev.speech.capital
-        </a>
+      <!-- Subs View -->
+      <div x-show="view==='subs'" class="border border-yellow-200/30 min-h-[60vh] p-4 md:p-6 space-y-2">
+        <a href="https://free.speech.capital" class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors">free.speech.capital</a><br>
+        <a href="https://artificial.speech.capital" class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors">artificial.speech.capital</a><br>
+        <a href="https://dev.speech.capital" class="inline-block text-yellow-200/80 hover:text-yellow-200 text-xs transition-colors">dev.speech.capital</a>
       </div>
 
+      <!-- User Profile View -->
+      <div x-show="view==='user'" class="border border-yellow-200/30 min-h-[60vh] p-4 md:p-6 space-y-4">
+        <div x-show="loading" class="text-center text-gray-400">Loading...</div>
+        <div x-show="!loading && !profile.user" class="text-center text-gray-400">User not found.</div>
+        <div x-show="!loading && profile.user" style="display:none">
+          <div class="flex justify-between items-baseline">
+            <h1 class="text-xl text-yellow-200" x-text="profile.user.username"></h1>
+            <span class="text-xs text-gray-400">Joined <span x-text="formatDate(profile.user.created_at)"></span></span>
+          </div>
+          <div class="flex justify-end mt-2" x-show="user && user.username===profile.user.username">
+            <a href="/api/logout" class="text-yellow-200/80 hover:text-yellow-200 text-xs flex items-center gap-1"><i data-lucide="log-out" class="w-4 h-4"></i>Logout</a>
+          </div>
+          <h2 class="text-lg text-yellow-200/90 mt-6 border-b border-yellow-200/30 pb-2 mb-4">Comments</h2>
+          <div class="space-y-4 text-sm">
+            <p x-show="profile.comments.length===0" class="text-gray-400">No comments yet.</p>
+            <template x-for="c in profile.comments" :key="c.id">
+              <div class="border-l-2 border-yellow-200/30 pl-4">
+                <p class="text-gray-200 whitespace-pre-wrap" x-text="c.content"></p>
+                <div class="text-xs text-gray-500 mt-2">on <a :href="`https://${c.sub_name}.speech.capital/${c.post_id}`" class="text-yellow-200/80 hover:underline" x-text="c.post_title"></a> · <span x-text="ago(c.created_at)"></span></div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
     lucide.createIcons();
+    page=()=>({user:null,view:'subs',profile:{user:null,comments:[]},loading:!1,init(){fetch('/api/user').then(r=>r.json()).then(d=>this.user=d.user);const p=location.pathname.replace(/\/$/,"");if(p&&!['/login','/signup','/admin'].includes(p)){const u=p.substring(1).split('/')[0];this.view='user';this.loadUser(u)}},async loadUser(u){this.loading=!0;try{const r=await fetch(`/api/users/${u}`);if(!r.ok)throw'';this.profile=await r.json()}catch(e){this.profile.user=null}finally{this.loading=!1;this.$nextTick(()=>lucide.createIcons())}},formatDate(d){return d?new Date(d.replace(' ','T')+'Z').toLocaleDateString():''},ago(d){if(!d)return'';const s=Math.floor((new Date-new Date(d.replace(' ','T')+'Z'))/1e3);return s<60?s+'s ago':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago'}})
   </script>
 </body>
 </html>
