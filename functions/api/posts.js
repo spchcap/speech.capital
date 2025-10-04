@@ -27,7 +27,7 @@ export async function onRequestGet({request,env}){
     const sub_row=await env.D1_SPCHCAP.prepare('SELECT id FROM subs WHERE name=?').bind(sub).first();
     if(!sub_row)return json({posts:[]},{},request);
     
-    let order=sort==='new'?'ORDER BY p.created_at DESC':'ORDER BY (p.score/(CAST((julianday("now")-julianday(p.created_at))*24 AS REAL)+2)) DESC';
+    let order=sort==='new'?'ORDER BY p.created_at DESC':'ORDER BY ((CASE WHEN p.score = 0 THEN 0.5 ELSE p.score END)/(CAST((julianday("now")-julianday(p.created_at))*24 AS REAL)+18)) DESC';
     const{results}=await env.D1_SPCHCAP.prepare(`SELECT p.id,p.user_id,p.title,p.link,p.content,p.score,p.comment_count,p.created_at,u.username${user?',v.direction as voted':''} FROM posts p JOIN users u ON p.user_id=u.id ${user?'LEFT JOIN votes v ON v.post_id=p.id AND v.user_id=?':''} WHERE p.sub_id=? ${order} LIMIT 30`).bind(...(user?[user.id,sub_row.id]:[sub_row.id])).all();
     return json({posts:results},{},request);
   }catch(e){return json({error:{message:e.message}},{status:500},request)}
