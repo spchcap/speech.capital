@@ -20,6 +20,7 @@
     </form>
     <p x-show="e" x-text="e" class="text-red-400 text-xs mt-2"></p>
     <p class="text-xs mt-4">No account? <a href="/signup" class="text-yellow-200/80 hover:text-yellow-200">Sign up</a>.</p>
+    <div class="text-center mt-6"><a href="/privacy.html" class="text-xs text-gray-500 hover:text-gray-400">Privacy</a></div>
   </div>
 <script>
 f=()=>({u:'',p:'',e:null,l:false,async s(){this.l=!0;this.e=null;try{const token=this.$el.querySelector('[name="cf-turnstile-response"]')?.value;if(!token)throw new Error('Please complete the CAPTCHA.');const r1=await fetch(`/api/auth-params?username=${this.u}`);if(!r1.ok)throw new Error('User not found.');const{N,r,p,salt_b64}=await r1.json();const pw=(new TextEncoder()).encode(this.p),dec=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),salt=dec(salt_b64);const h=await scrypt.scrypt(pw,salt,N,r,p,32),b64=a=>btoa(String.fromCharCode(...a));const h_str=`scrypt$${N}$${r}$${p}$${salt_b64}$${b64(h)}`;const r2=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:this.u,pass_hash:h_str,'cf-turnstile-response':token})});if(!r2.ok){const d=await r2.json();throw new Error(d.error?.message||'Login failed')}window.location.href='/'}catch(e){this.e=e.message;turnstile.reset(this.$el.querySelector('.cf-turnstile'))}finally{this.l=!1}}})
