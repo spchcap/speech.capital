@@ -32,7 +32,7 @@ export async function onRequestPost({request,env}){
     const{post_id,parent_id,content}=body;
     if(!post_id||!content)return json({error:'Missing fields'},{status:400},request);
     
-    const mod=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${env.GOOGLE_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:`Is this appropriate for a public forum? Respond ONLY "yes" or "no".\n\n${content}`}]}]})});
+    const mod=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${env.GOOGLE_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:`Is this content permissible for a public forum that values free speech, even if it's controversial? Offensive content is okay, but illegal content, spam, or direct threats are not. Respond ONLY "yes" or "no".\n\n${content}`}]}]})});
     if(!mod.ok){const err=await mod.text();return json({error:{message:`Moderation failed: ${err}`}},{status:500},request)}
     if(!(await mod.json()).candidates?.[0]?.content.parts[0].text.trim().toLowerCase().includes('yes'))return json({error:{message:'Comment rejected by Gemini 2.5 Flash Lite.'}},{status:400},request);
 
