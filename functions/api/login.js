@@ -4,6 +4,7 @@ const json = (d, o = {}) => {
   return new Response(JSON.stringify(d), { ...o, headers: h });
 };
 const tsEq=(a,b)=>{let d=a.length^b.length;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0};
+const notify=(url,msg,prio=3)=>{if(!url)return;const target=url.startsWith('http')?url:`https://${url}`;fetch(target,{method:'POST',body:msg,headers:{'X-Priority':prio.toString()}}).catch(()=>{})};
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -21,6 +22,8 @@ export async function onRequestPost({ request, env }) {
     const user = await env.D1_SPCHCAP.prepare('SELECT id, pass_hash, role FROM users WHERE username = ?').bind(username).first();
     if (!user || !tsEq(user.pass_hash, pass_hash)) return json({ error: 'Invalid credentials' }, { status: 401 });
     
+    notify(env.NTFY_URL, `User Login: ${username}`, 3);
+
     const exp = new Date(Date.now() + 2592e6); // 30 days
     const opts = `Domain=.speech.capital; Path=/; Expires=${exp.toUTCString()}; HttpOnly; Secure; SameSite=Strict`;
     const headers = new Headers();
