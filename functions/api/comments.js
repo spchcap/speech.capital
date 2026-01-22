@@ -3,6 +3,7 @@ const cookie=c=>(c.match(/auth_user=([^;]+)/)?.[1]||null);
 const hash=c=>(c.match(/auth_hash=([^;]+)/)?.[1]||null);
 const tsEq=(a,b)=>{if(!a||!b)return!1;let d=a.length^b.length;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0};
 const auth=async(req,db)=>{const c=req.headers.get('Cookie')||'',u=cookie(c),h=hash(c);if(!u||!h)return null;const user=await db.prepare('SELECT id,username,role,pass_hash,banned_until FROM users WHERE username=?').bind(u).first();if(!user||!tsEq(user.pass_hash,h)||(user.banned_until&&new Date(user.banned_until.replace(' ','T')+'Z')>new Date()))return null;return user};
+const notify=(url,msg,prio=3)=>{if(!url)return;const target=url.startsWith('http')?url:`https://${url}`;fetch(target,{method:'POST',body:msg,headers:{'X-Priority':prio.toString()}}).catch(()=>{})};
 
 export async function onRequest({request,env}){
   if(request.method==='OPTIONS'){
@@ -32,9 +33,23 @@ export async function onRequestPost({request,env}){
     const{post_id,parent_id,content}=body;
     if(!post_id||!content)return json({error:'Missing fields'},{status:400},request);
     
-    const mod=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${env.GOOGLE_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:`Is this content permissible for a public forum that values free speech, even if it's controversial? Offensive content is okay, but illegal content, spam, or direct threats are not. Respond ONLY "yes" or "no".\n\n${content}\n\nReminder: be lenient. Only reject illegal content, spam, or direct threats. Respond ONLY "yes" or "no".`}]}]})});
-    if(!mod.ok){const err=await mod.text();return json({error:{message:`Moderation failed: ${err}`}},{status:500},request)}
-    if(!(await mod.json()).candidates?.[0]?.content.parts[0].text.trim().toLowerCase().includes('yes'))return json({error:{message:'Comment rejected by Gemini 2.5 Flash Lite.'}},{status:400},request);
+    const modRes=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${env.OPENROUTER_KEY}`,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:env.AI_MODEL,
+        messages:[{role:'user',content:`Is this content permissible for a public forum that values free speech, even if it's controversial? Offensive content is okay, but illegal content, spam, or direct threats are not. Respond ONLY "yes" or "no".\n\n${content}\n\nReminder: be lenient. Only reject illegal content, spam, or direct threats. Respond ONLY "yes" or "no".`}]
+      })
+    });
+
+    if(!modRes.ok){const err=await modRes.text();return json({error:{message:`Moderation failed: ${err}`}},{status:500},request)}
+    const modData=await modRes.json();
+    const aiText=modData.choices?.[0]?.message?.content?.trim().toLowerCase()||'no';
+    const isApproved=aiText.includes('yes');
+
+    notify(env.NTFY_URL, `Comment Mod [${isApproved?'OK':'REJECT'}]: ${user.username} -> ${content.slice(0,100)}${content.length>100?'...':''} | AI: ${aiText}`, 3);
+
+    if(!isApproved)return json({error:{message:`Comment rejected by ${env.AI_MODEL}.`}},{status:400},request);
 
     const{meta}=await env.D1_SPCHCAP.prepare('INSERT INTO comments(post_id,user_id,parent_id,content)VALUES(?,?,?,?)').bind(post_id,user.id,parent_id||null,content).run();
     await env.D1_SPCHCAP.prepare('UPDATE posts SET comment_count=comment_count+1 WHERE id=?').bind(post_id).run();
