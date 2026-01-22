@@ -3,6 +3,7 @@ const json = (d, o = {}) => {
   h.set('Content-Type', 'application/json');
   return new Response(JSON.stringify(d), { ...o, headers: h });
 };
+const notify=(url,msg,prio=3)=>{if(!url)return;const target=url.startsWith('http')?url:`https://${url}`;fetch(target,{method:'POST',body:msg,headers:{'X-Priority':prio.toString()}}).catch(()=>{})};
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -22,6 +23,9 @@ export async function onRequestPost({ request, env }) {
     ).bind(username, email, pass_hash, request.headers.get('CF-Connecting-IP')).run();
     
     const user = await env.D1_SPCHCAP.prepare('SELECT role FROM users WHERE username = ?').bind(username).first();
+    
+    notify(env.NTFY_URL, `New User Signup: ${username} (${email})`, 3);
+
     const exp = new Date(Date.now() + 2592e6); // 30 days
     const opts = `Domain=.speech.capital; Path=/; Expires=${exp.toUTCString()}; HttpOnly; Secure; SameSite=Strict`;
     const headers = new Headers();
